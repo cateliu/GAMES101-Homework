@@ -63,3 +63,12 @@ void Triangle::setColors(const std::array<Vector3f, 3>& colors)
     setColor(1, colors[1][0], colors[1][1], colors[1][2]);
     setColor(2, colors[2][0], colors[2][1], colors[2][2]);
 }
+
+void Triangle::printTriagnle()
+{
+    std::cout << "Original coordinates:" << std::endl;
+    for (int x = 0; x < 4; x ++)
+    {
+        std::cout << v[x].transpose() << std::endl;
+    }   
+}
