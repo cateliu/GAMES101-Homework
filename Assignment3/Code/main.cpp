@@ -158,18 +158,26 @@ Eigen::Vector3f phong_fragment_shader(const fragment_shader_payload& payload)
 
     Eigen::Vector3f color = payload.color;
     Eigen::Vector3f point = payload.view_pos;
-    Eigen::Vector3f normal = payload.normal;
-
+    Eigen::Vector3f normal = payload.normal.normalized();
+    Eigen::Vector3f view = (eye_pos - point).normalized();
     Eigen::Vector3f result_color = {0, 0, 0};
     for (auto& light : lights)
     {
         // TODO: For each light source in the code, calculate what the *ambient*, *diffuse*, and *specular* 
         // components are. Then, accumulate that result on the *result_color* object.
-        float diffuse_dot = normal.dot((light.position).normalized()) / (normal.norm() * light.position.norm()) ;
-        Eigen::Vector3f diffuse = kd.array() * (light.intensity.array()) * (diffuse_dot > 0 ? diffuse_dot : 0);
+        auto light_vec = (light.position - point).normalized();
+        auto light_dis = (light.position - point).norm();
+        auto light_arrive = light.intensity / (light_dis * light_dis);
+
+        float diffuse_dot = normal.dot((light_vec)) ;/// (normal.norm() * light_vec.norm()) ;
+        auto  half_vec = (light_vec + view).normalized();
+        float specula_cof = half_vec.dot(normal);
+
+
+        Eigen::Vector3f diffuse = kd.array() * light_arrive.array() * (diffuse_dot > 0 ? diffuse_dot : 0);
         Eigen::Vector3f ambient = ka.array() * amb_light_intensity.array();
-        
-        result_color = result_color  + ambient + diffuse;
+        Eigen::Vector3f specular = ks.array() * light_arrive.array() * std::pow(specula_cof > 0 ?  specula_cof : 0, p);
+        result_color = result_color  + ambient + diffuse + specular;
         
     }
 
